@@ -1,0 +1,67 @@
+services:
+  mongo: #It is recommended to NOT run MongoDB in the container, since container restarts will result in data loss.
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+  control-panel:
+    build: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
+    restart: always
+    ports:
+      - "8081:8081"
+      - "8001:8001"
+    environment:
+      - server.port=8081
+      - web.url=http://localhost:3000
+      - auto-validate-email=true
+      - jwt.user=123456
+      - jwt.viewer=123456
+      - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
+      - github.pat=
+      - sendgrid.key=
+    depends_on:
+      - mongo
+  viewer:
+    build: https://github.com/Remote-Falcon/remote-falcon-viewer.git
+    restart: always
+    ports:
+      - "8082:8082"
+      - "8002:8002"
+    environment:
+      - server.port=8082
+      - jwt.viewer=123456
+      - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
+    depends_on:
+      - mongo
+  gateway:
+    build: https://github.com/Remote-Falcon/remote-falcon-gateway.git
+    restart: always
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    environment:
+      - server.port=8080
+      - services.control-panel.path=remote-falcon-control-panel
+      - services.control-panel.uri=http://host.docker.internal:8081/remote-falcon-control-panel
+      - services.viewer.path=remote-falcon-viewer
+      - services.viewer.uri=http://host.docker.internal:8082/remote-falcon-viewer
+    depends_on:
+      - control-panel
+      - viewer
+  ui:
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
+      args:
+        - HOST_ENV=local
+        - VERSION=local
+        - REMOTE_FALCON_GATEWAY=http://localhost:8080/remote-falcon-gateway
+        - VIEWER_JWT_KEY=123456
+        - DATADOG_CLIENT_TOKEN=
+        - GOOGLE_MAPS_KEY=
+        - PUBLIC_POSTHOG_KEY=
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
