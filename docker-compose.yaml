@@ -1,7 +1,9 @@
 services:
-  mongo: #It is recommended to NOT run MongoDB in the container, since container restarts will result in data loss.
+  mongo:
     image: mongo
     restart: always
+    volumes:
+      - /some/local/path/mongo-volume:/data/db #Update the path before the : to a valid path on your machine
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
