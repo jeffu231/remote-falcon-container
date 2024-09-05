@@ -7,6 +7,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - traefik-net
   plugins-api:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-plugins-api.git
@@ -20,8 +22,15 @@ services:
       - server.port=8083
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - server.servlet.context-path=/remote-falcon-plugins-api
+    networks:
+      - traefik-net
     depends_on:
       - mongo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.remote-falcon-plugin-api.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-plugins-api`)"
+      - "traefik.http.routers.remote-falcon-plugin-api.priority=10"
+      - "traefik.http.services.remote-falcon-plugin-api.loadbalancer.server.port=8083"
   control-panel:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
@@ -40,6 +49,8 @@ services:
       - github.pat=
       - sendgrid.key=
       - client.header=CF-Connecting-IP
+    networks:
+      - traefik-net
     depends_on:
       - mongo
   viewer:
@@ -56,6 +67,8 @@ services:
       - jwt.viewer=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - client.header=CF-Connecting-IP
+    networks:
+      - traefik-net
     depends_on:
       - mongo
   ui:
@@ -72,8 +85,19 @@ services:
         - GA_TRACKING_ID=1
         - HOSTNAME_PARTS=4
     restart: always
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3000"
     depends_on:
       - control-panel
       - viewer
+    networks:
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.remote-falcon-ui.rule=Host(`docker02.home.kb9kld.org`) || Host(`lightshow.docker02.home.kb9kld.org`)"
+      - "traefik.http.routers.remote-falcon-ui.priority=1"
+      - "traefik.http.services.remote-falcon-ui.loadbalancer.server.port=3000"
+
+networks:
+  traefik-net:
+    external: true
