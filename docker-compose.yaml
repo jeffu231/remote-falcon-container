@@ -16,7 +16,7 @@ services:
         - OTEL_OPTS=
     restart: always
     ports:
-      - "8083:8083"
+    #  - "8083:8083"
       - "8003:8003"
     environment:
       - server.port=8083
