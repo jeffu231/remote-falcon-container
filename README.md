@@ -2,9 +2,9 @@
 
 Use with a .env file to externalize the host settings.
 
-Ex.
+Example
 
-HOSTNAME=my.domain.org
-HOSTNAME_PARTS=3
-VIEWER_HOSTNAME=lightshow.my.domain.org
+HOSTNAME=my.domain.org\
+HOSTNAME_PARTS=3\
+VIEWER_HOSTNAME=lightshow.my.domain.org\
 GA_TRACKING_ID=1
