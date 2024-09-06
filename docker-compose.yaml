@@ -25,7 +25,7 @@ services:
       - mongo
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.remote-falcon-plugin-api.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-plugins-api`)"
+      - "traefik.http.routers.remote-falcon-plugin-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-plugins-api`)"
       - "traefik.http.routers.remote-falcon-plugin-api.priority=10"
       - "traefik.http.services.remote-falcon-plugin-api.loadbalancer.server.port=8083"
   control-panel:
@@ -36,7 +36,7 @@ services:
     restart: always
     environment:
       - server.port=8081
-      - web.url=http://docker02.home.kb9kld.org
+      - web.url=http://${HOSTNAME}
       - auto-validate-email=true
       - jwt.user=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
@@ -49,7 +49,7 @@ services:
       - mongo
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.remote-falcon-control-panel.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-control-panel`)"
+      - "traefik.http.routers.remote-falcon-control-panel.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-control-panel`)"
       - "traefik.http.routers.remote-falcon-control-panel.priority=15"
       - "traefik.http.services.remote-falcon-control-panel.loadbalancer.server.port=8081"
       
@@ -70,7 +70,7 @@ services:
       - mongo
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.remote-falcon-viewer.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-viewer`)"
+      - "traefik.http.routers.remote-falcon-viewer.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-viewer`)"
       - "traefik.http.routers.remote-falcon-viewer.priority=10"
       - "traefik.http.services.remote-falcon-viewer.loadbalancer.server.port=8082"
   ui:
@@ -79,13 +79,13 @@ services:
       args:
         - HOST_ENV=local
         - VERSION=local
-        - CONTROL_PANEL_API=http://docker02.home.kb9kld.org/remote-falcon-control-panel
-        - VIEWER_API=http://docker02.home.kb9kld.org/remote-falcon-viewer
+        - CONTROL_PANEL_API=http://${HOSTNAME}/remote-falcon-control-panel
+        - VIEWER_API=http://${HOSTNAME}/remote-falcon-viewer
         - VIEWER_JWT_KEY=437963
         - GOOGLE_MAPS_KEY=
         - PUBLIC_POSTHOG_KEY=
-        - GA_TRACKING_ID=1
-        - HOSTNAME_PARTS=4
+        - GA_TRACKING_ID=${GA_TRACKING_ID}
+        - HOSTNAME_PARTS=${HOSTNAME_PARTS}
     restart: always
     depends_on:
       - control-panel
@@ -94,7 +94,7 @@ services:
       - traefik-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.remote-falcon-ui.rule=Host(`docker02.home.kb9kld.org`) || Host(`lightshow.docker02.home.kb9kld.org`)"
+      - "traefik.http.routers.remote-falcon-ui.rule=Host(`${HOSTNAME}`) || Host(`${VIEWER_HOSTNAME}`)"
       - "traefik.http.routers.remote-falcon-ui.priority=1"
       - "traefik.http.services.remote-falcon-ui.loadbalancer.server.port=3000"
 
