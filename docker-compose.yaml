@@ -15,9 +15,6 @@ services:
       args:
         - OTEL_OPTS=
     restart: always
-    ports:
-    #  - "8083:8083"
-      - "8003:8003"
     environment:
       - server.port=8083
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
@@ -37,12 +34,9 @@ services:
       args:
         - OTEL_OPTS=
     restart: always
-    ports:
-      - "8081:8081"
-      - "8001:8001"
     environment:
       - server.port=8081
-      - web.url=http://docker02.home.kb9kld.org:3000
+      - web.url=http://docker02.home.kb9kld.org
       - auto-validate-email=true
       - jwt.user=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
@@ -53,15 +47,18 @@ services:
       - traefik-net
     depends_on:
       - mongo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.remote-falcon-control-panel.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-control-panel`)"
+      - "traefik.http.routers.remote-falcon-control-panel.priority=15"
+      - "traefik.http.services.remote-falcon-control-panel.loadbalancer.server.port=8081"
+      
   viewer:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
       args:
         - OTEL_OPTS=
     restart: always
-    ports:
-      - "8082:8082"
-      - "8002:8002"
     environment:
       - server.port=8082
       - jwt.viewer=437963
@@ -71,22 +68,25 @@ services:
       - traefik-net
     depends_on:
       - mongo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.remote-falcon-viewer.rule=Host(`docker02.home.kb9kld.org`) && PathPrefix(`/remote-falcon-viewer`)"
+      - "traefik.http.routers.remote-falcon-viewer.priority=10"
+      - "traefik.http.services.remote-falcon-viewer.loadbalancer.server.port=8082"
   ui:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
       args:
         - HOST_ENV=local
         - VERSION=local
-        - CONTROL_PANEL_API=http://docker02.home.kb9kld.org:8081/remote-falcon-control-panel
-        - VIEWER_API=http://docker02.home.kb9kld.org:8082/remote-falcon-viewer
+        - CONTROL_PANEL_API=http://docker02.home.kb9kld.org/remote-falcon-control-panel
+        - VIEWER_API=http://docker02.home.kb9kld.org/remote-falcon-viewer
         - VIEWER_JWT_KEY=437963
         - GOOGLE_MAPS_KEY=
         - PUBLIC_POSTHOG_KEY=
         - GA_TRACKING_ID=1
         - HOSTNAME_PARTS=4
     restart: always
-    #ports:
-    #  - "3000:3000"
     depends_on:
       - control-panel
       - viewer
