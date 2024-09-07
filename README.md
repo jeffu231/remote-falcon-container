@@ -6,7 +6,7 @@ This configuration uses Traefik as the router in a docker configuration to manag
 
 ## Configuration
 
-The configuration uses a few environment variables to work correctly. The hostname of the machine the control panel and viewer urls are hosted on is necessary to set it up. REmote Falcon uses a segmented domain structure where the viewer is a named subdomain on the primary host domain. 
+The configuration uses a few environment variables to work correctly. The hostname of the machine the control panel and viewer urls are hosted on is necessary to set it up. Remote Falcon uses a segmented domain structure where the viewer is a named subdomain on the primary host domain. 
 
 Exampe if the main control panel is hosted on my.domain.org, and you have a show using the name of lightshow, the viewer host will be lightshow.my.domain.org. Environment variables are used to set those names. In addition you need to specify the number of domain parts your base host has. I.E. my.domain.org has 3 parts.
 
