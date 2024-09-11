@@ -16,7 +16,6 @@ services:
         - OTEL_OPTS=
     restart: always
     environment:
-      - server.port=8083
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - server.servlet.context-path=/remote-falcon-plugins-api
     networks:
@@ -26,8 +25,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-plugin-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-plugins-api`)"
-      - "traefik.http.routers.remote-falcon-plugin-api.priority=10"
-      - "traefik.http.services.remote-falcon-plugin-api.loadbalancer.server.port=8083"
   control-panel:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
@@ -35,7 +32,6 @@ services:
         - OTEL_OPTS=
     restart: always
     environment:
-      - server.port=8081
       - web.url=http://${HOSTNAME}
       - auto-validate-email=true
       - jwt.user=437963
@@ -50,8 +46,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-control-panel.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-control-panel`)"
-      - "traefik.http.routers.remote-falcon-control-panel.priority=15"
-      - "traefik.http.services.remote-falcon-control-panel.loadbalancer.server.port=8081"
       
   viewer:
     build:
@@ -60,7 +54,6 @@ services:
         - OTEL_OPTS=
     restart: always
     environment:
-      - server.port=8082
       - jwt.viewer=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - client.header=CF-Connecting-IP
@@ -71,8 +64,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-viewer.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-viewer`)"
-      - "traefik.http.routers.remote-falcon-viewer.priority=10"
-      - "traefik.http.services.remote-falcon-viewer.loadbalancer.server.port=8082"
   ui:
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
@@ -95,7 +86,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-ui.rule=Host(`${HOSTNAME}`) || Host(`${VIEWER_HOSTNAME}`)"
-      - "traefik.http.routers.remote-falcon-ui.priority=1"
+      - "traefik.http.routers.remote-falcon-ui.priority=65"
       - "traefik.http.services.remote-falcon-ui.loadbalancer.server.port=3000"
 
 networks:
