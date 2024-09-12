@@ -87,7 +87,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-ui.rule=Host(`${HOSTNAME}`) || Host(`${VIEWER_HOSTNAME}`)"
       - "traefik.http.routers.remote-falcon-ui.priority=65"
-      - "traefik.http.services.remote-falcon-ui.loadbalancer.server.port=3000"
 
 networks:
   traefik-net:
