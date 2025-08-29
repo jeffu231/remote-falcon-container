@@ -20,6 +20,7 @@ services:
     environment:
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - server.servlet.context-path=/remote-falcon-plugins-api
+      - sequence-limit=200
     networks:
       - jtdev
     depends_on:
@@ -44,6 +45,9 @@ services:
       - github.pat=
       - sendgrid.key=
       - client.header=CF-Connecting-IP
+      - s3.endpoint=dummy
+      - s3.accessKey=dummy
+      - s3.secretKey=dummy
     networks:
       - jtdev
     depends_on:
@@ -65,6 +69,7 @@ services:
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - server.forward-headers-strategy=NATIVE
       - client.header=CF-Connecting-IP
+      - quarkus.http.port=8082
     networks:
       - jtdev
     depends_on:
@@ -89,6 +94,8 @@ services:
         - GA_TRACKING_ID=${GA_TRACKING_ID}
         - HOSTNAME_PARTS=${HOSTNAME_PARTS}
         - MIXPANEL_KEY=${MIXPANEL_KEY}
+        - SWAP_CP=false
+        - VIEWER_PAGE_SUBDOMAIN=
     restart: unless-stopped
     depends_on:
       - control-panel
