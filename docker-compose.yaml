@@ -11,7 +11,7 @@ services:
       - jtdev
 
   plugins-api:
-    image: ghcr.io/jeffu231/rf-plugins-api:${VERSION}
+    image: ghcr.io/jeffu231/rf-plugins-api
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-plugins-api.git
       args:
@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.remote-falcon-plugin-api.tls.certresolver=le"
 
   control-panel:
-    image: ghcr.io/jeffu231/rf-control-panel:${VERSION}
+    image: ghcr.io/jeffu231/rf-control-panel
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
       args:
@@ -54,7 +54,7 @@ services:
       - "traefik.http.routers.remote-falcon-control-panel.tls.certresolver=le"
       
   viewer:
-    image: ghcr.io/jeffu231/rf-viewer:${VERSION}
+    image: ghcr.io/jeffu231/rf-viewer
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
       args:
@@ -75,7 +75,7 @@ services:
       - "traefik.http.routers.remote-falcon-viewer.tls.certresolver=le"
 
   viewer-ui:
-    image: ghcr.io/jeffu231/rf-viewer-ui:${VERSION}
+    image: ghcr.io/jeffu231/rf-viewer-ui
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
       args:
@@ -101,7 +101,7 @@ services:
       - "traefik.http.routers.remote-falcon-viewer-ui.tls.certresolver=le"
 
   control-ui:
-    image: ghcr.io/jeffu231/rf-control-ui:$(VERSION)
+    image: ghcr.io/jeffu231/rf-control-ui
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
       args:

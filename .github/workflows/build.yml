@@ -39,8 +39,8 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Build and push Docker Compose images for plugin-api
-        env:
-          IMAGE_NAME: plugins-api
         run: |
           docker compose build plugins-api
           docker compose push plugins-api
+          docker tag ghcr.io/jeffu231/rf-plugins-api:latest ghcr.io/jeffu231/rf-plugins-api:$VERSION
+          docker push ghcr.io/jeffu231/rf-plugins-api:$VERSION
