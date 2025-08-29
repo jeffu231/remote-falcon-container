@@ -1,0 +1,38 @@
+name: Build and Publish Image to GitHub Container Registry
+
+on:
+  # trigger manual
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  HOSTNAME: ${{ secrets.HOSTNAME }}
+  HOSTNAME_PARTS: ${{ secrets.HOSTNAME_PARTS }}
+  CONTROL_HOSTNAME: ${{ secrets.CONTROL_HOSTNAME }}
+  CONTROL_HOSTNAME_PARTS: ${{ secrets.CONTROL_HOSTNAME_PARTS }}
+  VIEWER_HOSTNAME: ${{ secrets.VIEWER_HOSTNAME }}
+  MIXPANEL_KEY: ${{ secrets.MIXPANEL_KEY }}
+  GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
+      
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+    
+    steps:
+      - name: Set current date as VERSION environment variable
+        run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build and push Docker Compose images for plugin-api
+        run: |
+          docker compose build plugins-api
+          docker compose push plugins-api
