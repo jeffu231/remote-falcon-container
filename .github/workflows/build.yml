@@ -38,9 +38,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Build and push Docker Compose images for plugin-api
+      - name: Build all of the services
         run: |
-          docker compose build plugins-api
+          docker compose build
+
+      - name: Push Docker images for plugin-api
+        run: |
           docker compose push plugins-api
           docker tag ghcr.io/jeffu231/rf-plugins-api:latest ghcr.io/jeffu231/rf-plugins-api:$VERSION
           docker push ghcr.io/jeffu231/rf-plugins-api:$VERSION
+
+      - name: Push Docker images for control-panel
+        run: |
+          docker compose push control-panel
+          docker tag ghcr.io/jeffu231/rf-control-panel:latest ghcr.io/jeffu231/rf-control-panel:$VERSION
+          docker push ghcr.io/jeffu231/rf-control-panel:$VERSION
+
+      - name: Push Docker images for viewer
+        run: |
+          docker compose build viewer
+          docker compose push viewer
+          docker tag ghcr.io/jeffu231/rf-viewer:latest ghcr.io/jeffu231/rf-viewer:$VERSION
+          docker push ghcr.io/jeffu231/rf-viewer:$VERSION
+      
+      - name: Push Docker images for viewer-ui
+        run: |
+          docker compose push viewer-ui
+          docker tag ghcr.io/jeffu231/rf-viewer-ui:latest ghcr.io/jeffu231/rf-viewer-ui:$VERSION
+          docker push ghcr.io/jeffu231/rf-viewer-ui:$VERSION
+
+      - name: Push Docker images for control-ui          
+        run: |
+          docker compose push control-ui
+          docker tag ghcr.io/jeffu231/rf-control-ui:latest ghcr.io/jeffu231/rf-control-ui:$VERSION
+          docker push ghcr.io/jeffu231/rf-control-ui:$VERSION
