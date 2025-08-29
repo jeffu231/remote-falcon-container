@@ -1,38 +1,43 @@
 services:
   mongo:
     image: mongo
-    restart: always
+    restart: unless-stopped
     volumes:
-      - /srv/docker/volumes/remote-falcon/mongo/db:/data/db #Update the path before the : to a valid path on your machine
+      - otc-mongo-db:/data/db #Update the path before the : to a valid path on your machine
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
     networks:
-      - traefik-net
+      - jtdev
+
   plugins-api:
+    image: ghcr.io/jeffu231/rf-plugins-api:${VERSION}
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-plugins-api.git
       args:
         - OTEL_OPTS=
-    restart: always
+    restart: unless-stopped
     environment:
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
       - server.servlet.context-path=/remote-falcon-plugins-api
     networks:
-      - traefik-net
+      - jtdev
     depends_on:
       - mongo
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-plugin-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-plugins-api`)"
+      - "traefik.http.routers.remote-falcon-plugin-api.tls.certresolver=le"
+
   control-panel:
+    image: ghcr.io/jeffu231/rf-control-panel:${VERSION}
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
       args:
         - OTEL_OPTS=
-    restart: always
+    restart: unless-stopped
     environment:
-      - web.url=http://${HOSTNAME}
+      - web.url=https://${CONTROL_HOSTNAME}
       - auto-validate-email=true
       - jwt.user=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
@@ -40,54 +45,91 @@ services:
       - sendgrid.key=
       - client.header=CF-Connecting-IP
     networks:
-      - traefik-net
+      - jtdev
     depends_on:
       - mongo
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-control-panel.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-control-panel`)"
+      - "traefik.http.routers.remote-falcon-control-panel.tls.certresolver=le"
       
   viewer:
+    image: ghcr.io/jeffu231/rf-viewer:${VERSION}
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
       args:
         - OTEL_OPTS=
-    restart: always
+    restart: unless-stopped
     environment:
       - jwt.viewer=437963
       - spring.data.mongodb.uri=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
+      - server.forward-headers-strategy=NATIVE
       - client.header=CF-Connecting-IP
     networks:
-      - traefik-net
+      - jtdev
     depends_on:
       - mongo
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.remote-falcon-viewer.rule=Host(`${HOSTNAME}`) && PathPrefix(`/remote-falcon-viewer`)"
-  ui:
+      - "traefik.http.routers.remote-falcon-viewer.tls.certresolver=le"
+
+  viewer-ui:
+    image: ghcr.io/jeffu231/rf-viewer-ui:${VERSION}
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
       args:
-        - HOST_ENV=local
-        - VERSION=local
-        - CONTROL_PANEL_API=http://${HOSTNAME}/remote-falcon-control-panel
-        - VIEWER_API=http://${HOSTNAME}/remote-falcon-viewer
+        - HOST_ENV=prod
+        - VERSION=${VERSION}
+        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
+        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
         - VIEWER_JWT_KEY=437963
         - GOOGLE_MAPS_KEY=
         - PUBLIC_POSTHOG_KEY=
         - GA_TRACKING_ID=${GA_TRACKING_ID}
         - HOSTNAME_PARTS=${HOSTNAME_PARTS}
-    restart: always
+        - MIXPANEL_KEY=${MIXPANEL_KEY}
+    restart: unless-stopped
     depends_on:
       - control-panel
       - viewer
     networks:
-      - traefik-net
+      - jtdev
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.remote-falcon-ui.rule=Host(`${HOSTNAME}`) || Host(`${VIEWER_HOSTNAME}`)"
-      - "traefik.http.routers.remote-falcon-ui.priority=65"
+      - "traefik.http.routers.remote-falcon-viewer-ui.rule=Host(`${VIEWER_HOSTNAME}`)"
+      - "traefik.http.routers.remote-falcon-viewer-ui.tls.certresolver=le"
+
+  control-ui:
+    image: ghcr.io/jeffu231/rf-control-ui:$(VERSION)
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
+      args:
+        - HOST_ENV=prod
+        - VERSION=${VERSION}
+        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
+        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
+        - VIEWER_JWT_KEY=437963
+        - GOOGLE_MAPS_KEY=
+        - PUBLIC_POSTHOG_KEY=
+        - GA_TRACKING_ID=${GA_TRACKING_ID}
+        - HOSTNAME_PARTS=${CONTROL_HOSTNAME_PARTS}
+    restart: unless-stopped
+    depends_on:
+      - control-panel
+      - viewer
+    networks:
+      - jtdev
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.remote-falcon-control-ui.rule=Host(`${CONTROL_HOSTNAME}`) && ( ClientIP(`96.35.2.250`) || ClientIP(`75.134.202.185`) )"
+      - "traefik.http.routers.remote-falcon-control-ui.tls.certresolver=le"
+
+
+volumes:
+  otc-mongo-db:
+    external: true
 
 networks:
-  traefik-net:
+  jtdev:
     external: true
