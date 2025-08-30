@@ -63,6 +63,7 @@ services:
       context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
       args:
         - OTEL_OPTS=
+        - MONGO_URI=mongodb://root:root@mongo:27017/remote-falcon?authSource=admin
     restart: unless-stopped
     environment:
       - jwt.viewer=437963
@@ -121,6 +122,9 @@ services:
         - PUBLIC_POSTHOG_KEY=
         - GA_TRACKING_ID=${GA_TRACKING_ID}
         - HOSTNAME_PARTS=${CONTROL_HOSTNAME_PARTS}
+        - MIXPANEL_KEY=${MIXPANEL_KEY}
+        - SWAP_CP=false
+        - VIEWER_PAGE_SUBDOMAIN=
     restart: unless-stopped
     depends_on:
       - control-panel
