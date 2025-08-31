@@ -1,0 +1,68 @@
+### Simplified compose file to build Remote Falcon for self hosting
+
+services:
+  plugins-api:
+    image: ghcr.io/jeffu231/rf-plugins-api
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-plugins-api.git
+      args:
+        - OTEL_OPTS=
+        - MONGO_URI=${MONGO_URI}
+    
+  control-panel:
+    image: ghcr.io/jeffu231/rf-control-panel
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
+      args:
+        - OTEL_OPTS=
+    
+  viewer:
+    image: ghcr.io/jeffu231/rf-viewer
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
+      args:
+        - OTEL_OPTS=
+        - MONGO_URI=${MONGO_URI}
+   
+  viewer-ui:
+    image: ghcr.io/jeffu231/rf-viewer-ui
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
+      args:
+        - HOST_ENV=prod
+        - VERSION=${VERSION}
+        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
+        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
+        - VIEWER_JWT_KEY=${JWT_KEY}
+        - GOOGLE_MAPS_KEY=
+        - PUBLIC_POSTHOG_KEY=
+        - GA_TRACKING_ID=${GA_TRACKING_ID}
+        - HOSTNAME_PARTS=${HOSTNAME_PARTS}
+        - MIXPANEL_KEY=${MIXPANEL_KEY}
+        - SWAP_CP=false
+        - VIEWER_PAGE_SUBDOMAIN=
+    depends_on:
+      - control-panel
+      - viewer
+
+  control-ui:
+    image: ghcr.io/jeffu231/rf-control-ui
+    build:
+      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
+      args:
+        - HOST_ENV=prod
+        - VERSION=${VERSION}
+        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
+        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
+        - VIEWER_JWT_KEY=${JWT_KEY}
+        - GOOGLE_MAPS_KEY=
+        - PUBLIC_POSTHOG_KEY=
+        - GA_TRACKING_ID=${GA_TRACKING_ID}
+        - HOSTNAME_PARTS=${CONTROL_HOSTNAME_PARTS}
+        - MIXPANEL_KEY=${MIXPANEL_KEY}
+        - SWAP_CP=false
+        - VIEWER_PAGE_SUBDOMAIN=
+    depends_on:
+      - control-panel
+      - viewer
+

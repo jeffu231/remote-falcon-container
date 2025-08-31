@@ -1,0 +1,76 @@
+name: Build and Publish Image to GitHub Container Registry
+
+on:
+  # trigger manual
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  HOSTNAME: ${{ secrets.HOSTNAME }}
+  HOSTNAME_PARTS: ${{ secrets.HOSTNAME_PARTS }}
+  CONTROL_HOSTNAME: ${{ secrets.CONTROL_HOSTNAME }}
+  CONTROL_HOSTNAME_PARTS: ${{ secrets.CONTROL_HOSTNAME_PARTS }}
+  VIEWER_HOSTNAME: ${{ secrets.VIEWER_HOSTNAME }}
+  MIXPANEL_KEY: ${{ secrets.MIXPANEL_KEY }}
+  GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
+  MONGO_URI: ${{ secrets.MONGO_URI }}
+  JWT_KEY: ${{ secrets.JWT_KEY }}
+      
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+    
+    steps:
+      - name: Set current date as VERSION environment variable
+        run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build all of the services
+        run: |
+          docker compose build
+
+      - name: Push Docker images for plugin-api
+        run: |
+          docker compose push plugins-api
+          docker tag ghcr.io/jeffu231/rf-plugins-api:latest ghcr.io/jeffu231/rf-plugins-api:$VERSION
+          docker push ghcr.io/jeffu231/rf-plugins-api:$VERSION
+
+      - name: Push Docker images for control-panel
+        run: |
+          docker compose push control-panel
+          docker tag ghcr.io/jeffu231/rf-control-panel:latest ghcr.io/jeffu231/rf-control-panel:$VERSION
+          docker push ghcr.io/jeffu231/rf-control-panel:$VERSION
+
+      - name: Push Docker images for viewer
+        run: |
+          docker compose build viewer
+          docker compose push viewer
+          docker tag ghcr.io/jeffu231/rf-viewer:latest ghcr.io/jeffu231/rf-viewer:$VERSION
+          docker push ghcr.io/jeffu231/rf-viewer:$VERSION
+      
+      - name: Push Docker images for viewer-ui
+        run: |
+          docker compose push viewer-ui
+          docker tag ghcr.io/jeffu231/rf-viewer-ui:latest ghcr.io/jeffu231/rf-viewer-ui:$VERSION
+          docker push ghcr.io/jeffu231/rf-viewer-ui:$VERSION
+
+      - name: Push Docker images for control-ui          
+        run: |
+          docker compose push control-ui
+          docker tag ghcr.io/jeffu231/rf-control-ui:latest ghcr.io/jeffu231/rf-control-ui:$VERSION
+          docker push ghcr.io/jeffu231/rf-control-ui:$VERSION
