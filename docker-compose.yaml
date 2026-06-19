@@ -4,64 +4,45 @@ services:
   plugins-api:
     image: ghcr.io/jeffu231/rf-plugins-api
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-plugins-api.git
-      args:
-        - OTEL_OPTS=
-        - MONGO_URI=${MONGO_URI}
+      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      dockerfile: apps/plugins-api/Dockerfile.dev
     
   control-panel:
     image: ghcr.io/jeffu231/rf-control-panel
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-control-panel.git
-      args:
-        - OTEL_OPTS=
+      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      dockerfile: apps/control-panel/Dockerfile.dev
     
   viewer:
     image: ghcr.io/jeffu231/rf-viewer
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-viewer.git
-      args:
-        - OTEL_OPTS=
-        - MONGO_URI=${MONGO_URI}
+      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      dockerfile: apps/viewer/Dockerfile.dev
    
-  viewer-ui:
-    image: ghcr.io/jeffu231/rf-viewer-ui
+  ui:
+    image: ghcr.io/jeffu231/rf-ui
     build:
       context: https://github.com/Remote-Falcon/remote-falcon-ui.git
+      dockerfile: apps/ui/Dockerfile
       args:
-        - HOST_ENV=prod
-        - VERSION=${VERSION}
-        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
-        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
-        - VIEWER_JWT_KEY=${JWT_KEY}
-        - GOOGLE_MAPS_KEY=
-        - PUBLIC_POSTHOG_KEY=
-        - GA_TRACKING_ID=${GA_TRACKING_ID}
-        - HOSTNAME_PARTS=${HOSTNAME_PARTS}
-        - MIXPANEL_KEY=${MIXPANEL_KEY}
-        - SWAP_CP=false
-        - VIEWER_PAGE_SUBDOMAIN=
-    depends_on:
-      - control-panel
-      - viewer
-
-  control-ui:
-    image: ghcr.io/jeffu231/rf-control-ui
-    build:
-      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
-      args:
-        - HOST_ENV=prod
-        - VERSION=${VERSION}
-        - CONTROL_PANEL_API=https://${HOSTNAME}/remote-falcon-control-panel
-        - VIEWER_API=https://${HOSTNAME}/remote-falcon-viewer
-        - VIEWER_JWT_KEY=${JWT_KEY}
-        - GOOGLE_MAPS_KEY=
-        - PUBLIC_POSTHOG_KEY=
-        - GA_TRACKING_ID=${GA_TRACKING_ID}
-        - HOSTNAME_PARTS=${CONTROL_HOSTNAME_PARTS}
-        - MIXPANEL_KEY=${MIXPANEL_KEY}
-        - SWAP_CP=false
-        - VIEWER_PAGE_SUBDOMAIN=
+        HOST_ENV: prod
+        VERSION: ${VERSION:-self-host}
+        CONTROL_PANEL_API: ${WEB_URL}/remote-falcon-control-panel
+        VIEWER_API: ${WEB_URL}/remote-falcon-viewer
+        VIEWER_JWT_KEY: ${JWT_VIEWER}
+        GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY:-}
+        PUBLIC_POSTHOG_KEY: ${PUBLIC_POSTHOG_KEY:-}
+        GA_TRACKING_ID: ${GA_TRACKING_ID:-}
+        HOSTNAME_PARTS: ${HOSTNAME_PARTS:-2}
+        SWAP_CP: ${SWAP_CP:-false}
+        VIEWER_PAGE_SUBDOMAIN: ${VIEWER_PAGE_SUBDOMAIN:-}
+        # Path-routed self-host (issue #151). Set both to run the control panel
+        # and viewers on two fixed hosts instead of per-show subdomains, e.g.
+        #   CONTROL_HOST=control.example.com  VIEWER_HOST=lightshow.example.com
+        # Then point both hostnames at this UI service in your reverse proxy.
+        # Leave blank for the default subdomain-based routing.
+        CONTROL_HOST: ${CONTROL_HOST:-}
+        VIEWER_HOST: ${VIEWER_HOST:-}
     depends_on:
       - control-panel
       - viewer
