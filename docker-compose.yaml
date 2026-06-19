@@ -4,25 +4,26 @@ services:
   plugins-api:
     image: ghcr.io/jeffu231/rf-plugins-api
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      context: ./remote-falcon-platform
       dockerfile: apps/plugins-api/Dockerfile.dev
     
   control-panel:
     image: ghcr.io/jeffu231/rf-control-panel
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      context: ./remote-falcon-platform
       dockerfile: apps/control-panel/Dockerfile.dev
     
   viewer:
     image: ghcr.io/jeffu231/rf-viewer
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-platform.git
+      context: ./remote-falcon-platform
       dockerfile: apps/viewer/Dockerfile.dev
    
   ui:
     image: ghcr.io/jeffu231/rf-ui
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-platform.git:apps/ui
+      context: ./remote-falcon-platform/apps/ui
+      dockerfile: Dockerfile
       args:
         HOST_ENV: prod
         VERSION: ${VERSION:-self-host}

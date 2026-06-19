@@ -38,6 +38,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Checkout Remote Falcon
+        uses: actions/checkout@v7
+        with:
+          repository: 'Remote-Falcon/remote-falcon-platform'
+          path: 'remote-falcon-platform' # Saves into a local subfolder
+          
       - name: Build all of the services
         run: |
           docker compose build
