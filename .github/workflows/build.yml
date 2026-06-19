@@ -43,7 +43,7 @@ jobs:
         with:
           repository: 'Remote-Falcon/remote-falcon-platform'
           path: 'remote-falcon-platform' # Saves into a local subfolder
-          
+
       - name: Build all of the services
         run: |
           docker compose build
@@ -70,5 +70,5 @@ jobs:
       - name: Push Docker images for ui
         run: |
           docker compose push ui
-          docker tag ghcr.io/jeffu231/rf-viewer-ui:latest ghcr.io/jeffu231/rf-ui:$VERSION
+          docker tag ghcr.io/jeffu231/rf-ui:latest ghcr.io/jeffu231/rf-ui:$VERSION
           docker push ghcr.io/jeffu231/rf-ui:$VERSION
