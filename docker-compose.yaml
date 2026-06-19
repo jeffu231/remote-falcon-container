@@ -22,8 +22,7 @@ services:
   ui:
     image: ghcr.io/jeffu231/rf-ui
     build:
-      context: https://github.com/Remote-Falcon/remote-falcon-ui.git
-      dockerfile: apps/ui/Dockerfile
+      context: https://github.com/Remote-Falcon/remote-falcon-platform.git:apps/ui
       args:
         HOST_ENV: prod
         VERSION: ${VERSION:-self-host}
