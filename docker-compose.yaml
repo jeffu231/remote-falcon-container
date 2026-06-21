@@ -43,6 +43,7 @@ services:
         # Leave blank for the default subdomain-based routing.
         CONTROL_HOST: ${CONTROL_HOST:-}
         VIEWER_HOST: ${VIEWER_HOST:-}
+        CONTROL_PANEL_SUBDOMAIN: ${CONTROL_PANEL_SUBDOMAIN:-}
     depends_on:
       - control-panel
       - viewer
