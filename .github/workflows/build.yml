@@ -12,8 +12,6 @@ env:
   HOSTNAME: ${{ secrets.HOSTNAME }}
   WEB_URL: "https://${{ secrets.HOSTNAME }}"
   HOSTNAME_PARTS: ${{ secrets.HOSTNAME_PARTS }}
-  CONTROL_HOST: ${{ secrets.CONTROL_HOST }}
-  VIEWER_HOST: ${{ secrets.VIEWER_HOST }}
   CONTROL_PANEL_SUBDOMAIN: ${{secrets.CONTROL_PANEL_SUBDOMAIN}}
   GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
   JWT_VIEWER: ${{ secrets.JWT_KEY }}
@@ -26,6 +24,34 @@ jobs:
       contents: write
     
     steps:
+      - name: Check for New Commits in External Repo
+        id: commit-check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Change to your target organization/user and repository name
+          TARGET_REPO: "Remote-Falcon/remote-falcon-platform" 
+          TARGET_BRANCH: "main"
+        run: |
+          # Fetch the ISO 8601 timestamp of the latest commit on the target branch
+          LAST_COMMIT_DATE=$(gh api repos/$TARGET_REPO/commits/$TARGET_BRANCH --jq '.commit.committer.date')
+          echo "Last commit date: $LAST_COMMIT_DATE"
+          
+          # Convert timestamps to epoch seconds
+          COMMIT_EPOCH=$(date -d "$LAST_COMMIT_DATE" +%s)
+          NOW_EPOCH=$(date +%s)
+          
+          # Calculate elapsed time in seconds (24 hours = 86400 seconds)
+          AGE_SECONDS=$((NOW_EPOCH - COMMIT_EPOCH))
+          echo "Commit age: $AGE_SECONDS seconds"
+          
+          if [ $AGE_SECONDS -le 86400 ]; then
+            echo "New commits found within the last 24 hours."
+            echo "execute_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "No new commits found in the last 24 hours."
+            echo "execute_build=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set current date as VERSION environment variable
         run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
