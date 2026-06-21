@@ -1,12 +1,12 @@
 name: Build and Publish Image to GitHub Container Registry
 
 on:
+  schedule:
+    # Runs daily at 00:00 UTC
+    - cron: '50 23 * * *'
   # trigger manual
   workflow_dispatch:
-  push:
-    branches:
-      - master
-
+  
 env:
   REGISTRY: ghcr.io
   HOSTNAME: ${{ secrets.HOSTNAME }}
@@ -17,12 +17,11 @@ env:
   JWT_VIEWER: ${{ secrets.JWT_KEY }}
       
 jobs:
-  publish:
+  check-commits:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: write
-    
+    outputs:
+      execute_build: ${{ steps.commit-check.outputs.execute_build }}
+      
     steps:
       - name: Check for New Commits in External Repo
         id: commit-check
@@ -31,7 +30,15 @@ jobs:
           # Change to your target organization/user and repository name
           TARGET_REPO: "Remote-Falcon/remote-falcon-platform" 
           TARGET_BRANCH: "main"
+           # Detects if the event triggering the run is a manual click
+          IS_MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
+          if [ "$IS_MANUAL" = "true" ]; then
+            echo "Workflow triggered manually. Bypassing external commit check."
+            echo "execute_build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           # Fetch the ISO 8601 timestamp of the latest commit on the target branch
           LAST_COMMIT_DATE=$(gh api repos/$TARGET_REPO/commits/$TARGET_BRANCH --jq '.commit.committer.date')
           echo "Last commit date: $LAST_COMMIT_DATE"
@@ -51,7 +58,18 @@ jobs:
             echo "No new commits found in the last 24 hours."
             echo "execute_build=false" >> $GITHUB_OUTPUT
           fi
+      
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
 
+    # Wait for the check job to finish, then evaluate the condition once for the whole job
+    needs: [check-commits]
+    if: needs.check-commits.outputs.execute_build == 'true'
+
+    steps:
       - name: Set current date as VERSION environment variable
         run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
@@ -70,7 +88,7 @@ jobs:
         with:
           repository: 'Remote-Falcon/remote-falcon-platform'
           path: 'remote-falcon-platform' # Saves into a local subfolder
-
+          
       - name: Build all of the services
         run: |
           docker compose build
