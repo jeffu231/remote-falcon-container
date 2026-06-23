@@ -30,9 +30,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Change to your target organization/user and repository name
           TARGET_REPO: "Remote-Falcon/remote-falcon-platform" 
-          TARGET_BRANCH: "main"
-           # Detects if the event triggering the run is a manual click
-          IS_MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+          TARGET_BRANCH: ${{ vars.TARGET_BRANCH }}           
+          # Detects if the event triggering the run is a manual click
+          IS_MANUAL: ${{ github.event_name == 'workflow_dispatch' }}         
         run: |
           if [ "$IS_MANUAL" = "true" ]; then
             echo "Workflow triggered manually. Bypassing external commit check."
@@ -89,6 +89,7 @@ jobs:
         with:
           repository: 'Remote-Falcon/remote-falcon-platform'
           path: 'remote-falcon-platform' # Saves into a local subfolder
+          ref: ${{ vars.TARGET_BRANCH }}
 
       - name: Build all of the services
         run: |
